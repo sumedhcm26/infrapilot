@@ -1,4 +1,4 @@
-# 🛩️ InfraPilot — Cloud Deployment & Monitoring Platform
+#  InfraPilot — Cloud Deployment & Monitoring Platform
 
 [![CI Pipeline](https://github.com/yourusername/infrapilot/actions/workflows/ci.yml/badge.svg)](https://github.com/yourusername/infrapilot/actions)
 [![Python](https://img.shields.io/badge/Python-3.12-blue?logo=python)](https://python.org)
