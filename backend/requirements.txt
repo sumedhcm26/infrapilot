@@ -1,0 +1,26 @@
+# InfraPilot Backend Dependencies
+# Install with: pip install -r requirements.txt
+
+# Web Framework
+fastapi==0.115.5
+uvicorn[standard]==0.32.1        # ASGI server - runs the FastAPI app
+
+# Database
+sqlalchemy==2.0.36               # ORM (Object-Relational Mapper)
+aiosqlite==0.20.0                # Async SQLite driver for local dev
+# asyncpg==0.29.0               # Uncomment for PostgreSQL in production
+
+# Pydantic (data validation)
+pydantic==2.10.3
+pydantic-settings==2.6.1         # For reading .env files
+
+# HTTP Client (for health checks)
+aiohttp==3.11.10                 # Async HTTP client
+
+# Development / Testing
+pytest==8.3.4
+pytest-asyncio==0.24.0
+httpx==0.28.1                    # Test HTTP client for FastAPI
+
+# Linting
+ruff==0.8.4                      # Fast Python linter
