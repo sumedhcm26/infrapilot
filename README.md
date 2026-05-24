@@ -10,14 +10,7 @@
 
 ---
 
-## 📸 Screenshots
 
-> _Add your screenshots here after running the project locally_
->
-> - `docs/screenshots/dashboard.png` — Main monitoring dashboard
-> - `docs/screenshots/services.png` — Service health table
-> - `docs/screenshots/deployments.png` — Deployment history
-> - `docs/screenshots/incidents.png` — Incident management
 
 ---
 
