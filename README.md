@@ -1,4 +1,4 @@
-# 🛩️ InfraPilot — Cloud Deployment & Monitoring Platform
+#  InfraPilot — Cloud Deployment & Monitoring Platform
 
 [![CI Pipeline](https://github.com/yourusername/infrapilot/actions/workflows/ci.yml/badge.svg)](https://github.com/yourusername/infrapilot/actions)
 [![Python](https://img.shields.io/badge/Python-3.12-blue?logo=python)](https://python.org)
@@ -10,14 +10,7 @@
 
 ---
 
-## 📸 Screenshots
 
-> _Add your screenshots here after running the project locally_
->
-> - `docs/screenshots/dashboard.png` — Main monitoring dashboard
-> - `docs/screenshots/services.png` — Service health table
-> - `docs/screenshots/deployments.png` — Deployment history
-> - `docs/screenshots/incidents.png` — Incident management
 
 ---
 
