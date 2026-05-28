@@ -1,0 +1,51 @@
+{
+  "folders": [
+    { "path": "." }
+  ],
+  "settings": {
+    "python.defaultInterpreterPath": "${workspaceFolder}/backend/.venv/bin/python",
+    "editor.formatOnSave": true,
+    "editor.tabSize": 2,
+    "[python]": {
+      "editor.tabSize": 4,
+      "editor.defaultFormatter": "charliermarsh.ruff"
+    },
+    "[javascript]": { "editor.defaultFormatter": "esbenp.prettier-vscode" },
+    "[jsx]": { "editor.defaultFormatter": "esbenp.prettier-vscode" },
+    "python.testing.pytestEnabled": true,
+    "python.testing.pytestArgs": ["backend/tests"],
+    "python.testing.cwd": "${workspaceFolder}/backend",
+    "files.exclude": {
+      "**/__pycache__": true,
+      "**/.pytest_cache": true,
+      "**/node_modules": true
+    }
+  },
+  "extensions": {
+    "recommendations": [
+      "ms-python.python",
+      "ms-python.pylance",
+      "charliermarsh.ruff",
+      "esbenp.prettier-vscode",
+      "dbaeumer.vscode-eslint",
+      "ms-azuretools.vscode-docker",
+      "humao.rest-client",
+      "eamodio.gitlens",
+      "GitHub.vscode-github-actions"
+    ]
+  },
+  "launch": {
+    "configurations": [
+      {
+        "name": "Backend: FastAPI (uvicorn)",
+        "type": "python",
+        "request": "launch",
+        "module": "uvicorn",
+        "args": ["app.main:app", "--reload", "--port", "8000"],
+        "cwd": "${workspaceFolder}/backend",
+        "envFile": "${workspaceFolder}/backend/.env",
+        "console": "integratedTerminal"
+      }
+    ]
+  }
+}

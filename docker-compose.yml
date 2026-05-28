@@ -1,0 +1,111 @@
+# ============================================================
+# InfraPilot - Docker Compose
+# ============================================================
+# Spins up the entire stack with one command:
+#   docker compose up --build
+#
+# Services:
+#   - backend  : FastAPI on port 8000
+#   - frontend : React (nginx) on port 3000
+#
+# For PostgreSQL (optional, more production-like):
+#   Uncomment the 'db' service and update DATABASE_URL
+# ============================================================
+
+version: "3.9"
+
+services:
+
+  # ----------------------------------------------------------
+  # Backend - FastAPI
+  # ----------------------------------------------------------
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: infrapilot-backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - ENVIRONMENT=development
+      - DEBUG=true
+      - LOG_LEVEL=INFO
+      # SQLite (simple, no extra container needed)
+      - DATABASE_URL=sqlite+aiosqlite:////app/data/infrapilot.db
+      # Uncomment for PostgreSQL:
+      # - DATABASE_URL=postgresql+asyncpg://infrapilot:password@db:5432/infrapilot
+      - SECRET_KEY=${SECRET_KEY:-dev-secret-change-in-prod}
+      - ALLOWED_ORIGINS=["http://localhost:3000","http://localhost:5173","http://frontend"]
+      - HEALTH_CHECK_INTERVAL=60
+    volumes:
+      # Persist SQLite database outside the container
+      - backend_data:/app/data
+      # Hot reload: mount source code (dev only)
+      - ./backend/app:/app/app
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    networks:
+      - infrapilot-net
+
+  # ----------------------------------------------------------
+  # Frontend - React + nginx
+  # ----------------------------------------------------------
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        # Backend URL as seen FROM THE BROWSER (not from inside Docker)
+        - VITE_API_URL=http://localhost:8000
+    container_name: infrapilot-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - infrapilot-net
+
+  # ----------------------------------------------------------
+  # PostgreSQL (optional - uncomment to use instead of SQLite)
+  # ----------------------------------------------------------
+  # db:
+  #   image: postgres:16-alpine
+  #   container_name: infrapilot-db
+  #   restart: unless-stopped
+  #   environment:
+  #     POSTGRES_USER: infrapilot
+  #     POSTGRES_PASSWORD: password
+  #     POSTGRES_DB: infrapilot
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #   ports:
+  #     - "5432:5432"
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "pg_isready -U infrapilot"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+  #   networks:
+  #     - infrapilot-net
+
+# ----------------------------------------------------------
+# Named volumes - data persists between container restarts
+# ----------------------------------------------------------
+volumes:
+  backend_data:
+  # postgres_data:  # Uncomment if using PostgreSQL
+
+# ----------------------------------------------------------
+# Network - containers communicate using service names as hostnames
+# e.g. backend can reach db at "db:5432"
+# ----------------------------------------------------------
+networks:
+  infrapilot-net:
+    driver: bridge

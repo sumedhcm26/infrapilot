@@ -1,0 +1,95 @@
+# ============================================================
+# CD Workflow - Deploy on merge to main
+# ============================================================
+# Triggers Render (backend) and Vercel (frontend) deployments.
+#
+# Prerequisites - add these GitHub Secrets in your repo:
+#   Settings > Secrets and variables > Actions
+#
+# Required secrets:
+#   RENDER_API_KEY       - From render.com dashboard > Account Settings
+#   RENDER_SERVICE_ID    - From your Render service URL (starts with srv-)
+#   VERCEL_TOKEN         - From vercel.com > Settings > Tokens
+#   VERCEL_ORG_ID        - From vercel.com project settings
+#   VERCEL_PROJECT_ID    - From vercel.com project settings
+# ============================================================
+
+name: Deploy
+
+on:
+  push:
+    branches: [main]  # Only deploy from the main branch
+
+jobs:
+
+  # ----------------------------------------------------------
+  # Deploy Backend to Render
+  # ----------------------------------------------------------
+  deploy-backend:
+    name: Deploy Backend → Render
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Trigger Render Deploy
+        # Render's deploy hook - just send a POST request
+        run: |
+          echo "🚀 Triggering Render deployment..."
+          curl -s --fail \
+            -X POST \
+            -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
+            "https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID }}/deploys" \
+            -d '{"clearCache": false}'
+
+      - name: Wait for deployment
+        run: |
+          echo "⏳ Waiting 60s for deployment to start..."
+          sleep 60
+
+      - name: Verify deployment health
+        run: |
+          echo "🏥 Checking backend health..."
+          # Replace with your actual Render URL
+          curl -f https://infrapilot-backend.onrender.com/health || echo "Health check failed - check Render dashboard"
+
+  # ----------------------------------------------------------
+  # Deploy Frontend to Vercel
+  # ----------------------------------------------------------
+  deploy-frontend:
+    name: Deploy Frontend → Vercel
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Vercel CLI
+        run: npm install -g vercel@latest
+
+      - name: Deploy to Vercel
+        working-directory: ./frontend
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          echo "🚀 Deploying frontend to Vercel..."
+          vercel deploy --prod --token=$VERCEL_TOKEN
+
+  # ----------------------------------------------------------
+  # Post-Deploy Notification
+  # ----------------------------------------------------------
+  notify:
+    name: Deployment Summary
+    runs-on: ubuntu-latest
+    needs: [deploy-backend, deploy-frontend]
+    if: always()
+
+    steps:
+      - name: Print Summary
+        run: |
+          echo "## 🚀 Deployment Complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Service  | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|----------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Backend  | ${{ needs.deploy-backend.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Frontend | ${{ needs.deploy-frontend.result }} |" >> $GITHUB_STEP_SUMMARY

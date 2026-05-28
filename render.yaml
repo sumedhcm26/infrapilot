@@ -1,0 +1,36 @@
+# render.yaml - Render.com Infrastructure-as-Code
+# This file defines your Render services declaratively.
+# Render reads this when you connect your GitHub repo.
+#
+# Deploy steps:
+#   1. Go to render.com -> New -> Blueprint
+#   2. Connect your GitHub repo
+#   3. Render detects this file and creates all services automatically
+
+services:
+
+  # Backend API Service
+  - type: web
+    name: infrapilot-backend
+    runtime: python
+    plan: free                          # Free tier!
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: DEBUG
+        value: false
+      - key: LOG_LEVEL
+        value: INFO
+      - key: DATABASE_URL
+        value: sqlite+aiosqlite:////opt/render/project/src/data/infrapilot.db
+      - key: SECRET_KEY
+        generateValue: true             # Render auto-generates a secure random value
+      - key: ALLOWED_ORIGINS
+        value: '["https://infrapilot.vercel.app"]'  # Update with your Vercel URL
+      - key: HEALTH_CHECK_INTERVAL
+        value: 120

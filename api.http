@@ -1,0 +1,131 @@
+### InfraPilot API Tests
+### Use with VS Code "REST Client" extension (humao.rest-client)
+### Click "Send Request" above each request
+
+@base = http://localhost:8000
+
+# =====================================================
+# Health
+# =====================================================
+
+### Full health check
+GET {{base}}/health
+
+###
+GET {{base}}/health/live
+
+# =====================================================
+# Services
+# =====================================================
+
+### List all services
+GET {{base}}/api/v1/services/
+
+### Create a service
+# @name createService
+POST {{base}}/api/v1/services/
+Content-Type: application/json
+
+{
+  "name": "My Test API",
+  "url": "https://httpbin.org/status/200",
+  "environment": "production",
+  "description": "Testing InfraPilot health monitoring"
+}
+
+### Get service ID from last response
+@serviceId = {{createService.response.body.id}}
+
+### Get single service
+GET {{base}}/api/v1/services/{{serviceId}}
+
+### Trigger manual health check
+POST {{base}}/api/v1/services/{{serviceId}}/check
+
+### Update service
+PATCH {{base}}/api/v1/services/{{serviceId}}
+Content-Type: application/json
+
+{
+  "description": "Updated description"
+}
+
+### Dashboard stats
+GET {{base}}/api/v1/services/stats/summary
+
+# =====================================================
+# Deployments
+# =====================================================
+
+### Create deployment
+# @name createDeployment
+POST {{base}}/api/v1/deployments/
+Content-Type: application/json
+
+{
+  "service_id": "{{serviceId}}",
+  "service_name": "My Test API",
+  "version": "v1.0.0",
+  "environment": "production",
+  "triggered_by": "REST Client test",
+  "branch": "main",
+  "commit_sha": "abc12345"
+}
+
+@deploymentId = {{createDeployment.response.body.id}}
+
+### Mark deployment as success
+PATCH {{base}}/api/v1/deployments/{{deploymentId}}
+Content-Type: application/json
+
+{
+  "status": "success"
+}
+
+# =====================================================
+# Incidents
+# =====================================================
+
+### List open incidents
+GET {{base}}/api/v1/incidents/?status=open
+
+### Create incident manually
+# @name createIncident
+POST {{base}}/api/v1/incidents/
+Content-Type: application/json
+
+{
+  "service_id": "{{serviceId}}",
+  "service_name": "My Test API",
+  "title": "API returning 500 errors",
+  "severity": "high"
+}
+
+@incidentId = {{createIncident.response.body.id}}
+
+### Resolve incident
+PATCH {{base}}/api/v1/incidents/{{incidentId}}
+Content-Type: application/json
+
+{
+  "status": "resolved",
+  "resolution_notes": "Rolled back bad deploy"
+}
+
+# =====================================================
+# Environments
+# =====================================================
+
+### List environments
+GET {{base}}/api/v1/environments/
+
+### Create environment
+POST {{base}}/api/v1/environments/
+Content-Type: application/json
+
+{
+  "name": "canary",
+  "display_name": "Canary",
+  "description": "5% traffic canary deployment",
+  "color": "#ff7043"
+}
